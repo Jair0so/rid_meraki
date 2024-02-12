@@ -141,10 +141,12 @@ configurations:
       lease_time: "default"
       dns_nameservers: "google_public_dns"
       boot_options: false
+
   firewall:
     rules:
       - name: "Allow HTTP"
         # Additional firewall rule settings here
+        
   site_to_site_vpn:
     # VPN-specific settings here
   routing:

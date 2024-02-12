@@ -189,9 +189,7 @@ class MerakiActions(MerakiManager):
 
         
 
-        for vlan in config.get('vlans', []):
-            self.console.print(f"Configuring VLAN {vlan['id']}...")
-            payload = {
+       c
                 'id': vlan['id'],
                 'name': vlan['name'],
                 'subnet': vlan['subnet'],
@@ -269,6 +267,35 @@ class MerakiActions(MerakiManager):
         else:
             self.console.print(f"[bold red] Failed to enable VLANs. STATUS CODE: {response.status_code}[/bold red]")
             self.console.print(f"Response: {response.text}")
+
+    def configure_fw_rule(self, network_id):
+        # Load configurations from YAML file
+        with open('inventory.yaml', 'r') as file:
+            config = yaml.safe_load(file)['configurations']['firewall']
+
+        for rule in config.get('rules', []):
+            self.console.print(f"Configuring fw rule {rule['id']}...")
+            payload = {
+                'comment': rule['comment'],
+                'policy': rule['policy'],
+                'protocol': rule['protocol'],
+                'destPort': rule['destPort'],
+                'destCidr': rule['destCidr'],
+                'srcPort': rule['srcPort'],
+                'srcCidr': rule['srcCidr'],
+                'syslogEnabled': False
+            }
+
+        response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers, json=payload)
+
+        if response.status_code in [200, 201, 202]:
+            self.console.print("[/bold green] Firewall rule configured")
+        else:
+            self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
+            self.console.print(f"Response: {response.text}")
+
+
+
 
 def main():
     api_key = os.getenv('MERAKI_DASHBOARD_API_KEY')
