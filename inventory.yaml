@@ -1,0 +1,167 @@
+---
+device_name: "MX68-1"
+configurations:
+  vlans:
+    #default range is /20 menaing you have from 10.0.0.1 - 10.0.15.254 for a total of 16 vlans
+    #default uses 7 networks from the /20
+    #- id: 1
+    #  name: "MGMT"
+    #  subnet: "192.168.128.0/24"
+    #  applianceIp: "192.168.128.1"
+    #  groupPolicyId: ""
+    #  templateVlanType: "same"
+    #  cidr: "192.168.128.0/24"
+    #  mask: 24
+    #  ipv6:
+    #    enabled: false
+
+    - id: 10
+      name: "Meraki"
+      subnet: "10.250.0.0/24"
+      applianceIp: "10.250.0.1"
+      groupPolicyId: ""
+      templateVlanType: "same"
+      cidr: "10.250.0.0/24"
+      mask: 24
+      ipv6:
+        enabled: false
+      
+    - id: 110
+      name: "Printers"
+      subnet: "10.250.1.0/24"
+      applianceIp: "10.250.1.1"
+      groupPolicyId: ""
+      templateVlanType: "same"
+      cidr: "10.250.1.0/24"
+      mask: 24
+      ipv6:
+        enabled: false
+
+    - id: 120
+      name: "Servers"
+      subnet: "10.250.2.0/24"
+      applianceIp: "10.250.2.1"
+      groupPolicyId: ""
+      templateVlanType: "same"
+      cidr: "10.250.2.0/24"
+      mask: 24
+      ipv6:
+        enabled: false
+
+    - id: 130
+      name: "APs"
+      subnet: "10.250.3.0/24"
+      applianceIp: "10.250.3.1"
+      groupPolicyId: ""
+      templateVlanType: "same"
+      cidr: "10.250.3.0/24"
+      mask: 24
+      ipv6:
+        enabled: false
+
+    - id: 160
+      name: "Users"
+      subnet: "10.250.4.0/24"
+      applianceIp: "10.250.4.1"
+      groupPolicyId: ""
+      templateVlanType: "same"
+      cidr: "10.250.4.0/24"
+      mask: 24
+      ipv6:
+        enabled: false
+
+    - id: 200
+      name: "External"
+      subnet: "10.250.5.0/24"
+      applianceIp: "10.250.5.1"
+      groupPolicyId: ""
+      templateVlanType: "same"
+      cidr: "10.250.5.0/24"
+      mask: 24
+      ipv6:
+        enabled: false
+
+    - id: 600
+      name: "Guest"
+      subnet: "10.250.6.0/24"
+      applianceIp: "10.250.6.1"
+      groupPolicyId: ""
+      templateVlanType: "same"
+      cidr: "10.250.6.0/24"
+      mask: 24
+      ipv6:
+        enabled: false
+
+  dhcp:
+    - vlan_id: 1
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+    - vlan_id: 10
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+    - vlan_id: 110
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+    - vlan_id: 120
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+    - vlan_id: 130
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+    - vlan_id: 160
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+    - vlan_id: 200
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+    - vlan_id: 600
+      run_dhcp: true
+      mandatory_dhcp: false
+      lease_time: "default"
+      dns_nameservers: "google_public_dns"
+      boot_options: false
+  firewall:
+    rules:
+      - name: "Allow HTTP"
+        # Additional firewall rule settings here
+  site_to_site_vpn:
+    # VPN-specific settings here
+  routing:
+    # Routing-specific settings here
+  client_vpn:
+    # Client VPN-specific settings here
+  active_directory:
+    # Active Directory-specific settings here
+  sd_wan_traffic_shaping:
+    # SD-WAN & Traffic Shaping-specific settings here
+  threat_protection:
+    # Threat Protection-specific settings here
+  content_filtering:
+    # Content Filtering-specific settings here
+  access_control:
+    # Access Control-specific settings here
+  splash_page:
+    # Splash Page-specific settings here
+  wireless_contractor:
+    # Wireless Contractor-specific settings here
