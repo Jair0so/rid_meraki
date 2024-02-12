@@ -83,7 +83,16 @@ class MerakiActions(MerakiManager):
                         self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
             elif choice == '6':
                 network_id = self.select_network(org_id)
-                self.configure_vlans(network_id)
+                if self.check_multiple_vlans(network_id) == False:
+                    self.console.print('\n')
+                    self.console.print("[cyan] updating network to accept multiple vlans [/cyan]")
+                    self.enable_multiple_vlans(network_id)
+                    self.console.print('\n')
+                    self.console.print("[cyan] Starting to configure VLANs [/cyan]")
+                    self.configure_vlans(network_id)
+                else:
+                    self.console.print("[cyan] Starting to configure VLANs [/cyan]")
+                    self.configure_vlans(network_id)
                 
                 
 
@@ -178,6 +187,8 @@ class MerakiActions(MerakiManager):
         vlan_table.add_column("Appliance IP", justify="center", style="red")
         vlan_table.add_column("Status", justify="center", style="blue")
 
+        
+
         for vlan in config.get('vlans', []):
             self.console.print(f"Configuring VLAN {vlan['id']}...")
             payload = {
@@ -231,17 +242,33 @@ class MerakiActions(MerakiManager):
                 # Print the table after configuring all VLANs
                 self.console.print(vlan_table)
 
-    def configure_multiple_vlans(self, network_id):
-        self.console.print(f"\n[bold]Validating if {network_id} is set for multiple vlans...[/bold]")    
+    def check_multiple_vlans(self, network_id):
+        self.console.print(f"\n[bold]Validating if {network_id} is set for multiple vlans...[/bold]")
 
-        getter = requests.get(
-                f"{self.base_url}/networks/{network_id}/appliance/vlans/settings",
-                headers=self.headers,
-            )
-        self.console.print(getter)
+        vlan_settings_url = f"{self.base_url}/networks/{network_id}/appliance/vlans/settings"
+        vlan_settings_response = requests.get(vlan_settings_url, headers=self.headers)
 
-        
+        if vlan_settings_response.status_code == 200:
+            
+            vlan_settings = vlan_settings_response.json()
+            if not vlan_settings.get('vlansEnabled', False):
+                self.console.print ("[bold red]Only a single VLAN is supported on this network")
+                return False
+            
+    def enable_multiple_vlans(self, network_id):
 
+        payload = {
+            'vlansEnabled': True
+        }
+        # put para actualizar a multiples vlans utilizando payload como en la documentacion
+        response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/vlans/settings", headers=self.headers, json=payload)
+
+        # verificamos si se aplico
+        if response.status_code == 200:
+            self.console.print("[bold green] Multiple VLANs enabled successfully!!!![/bold green]")
+        else:
+            self.console.print(f"[bold red] Failed to enable VLANs. STATUS CODE: {response.status_code}[/bold red]")
+            self.console.print(f"Response: {response.text}")
 
 def main():
     api_key = os.getenv('MERAKI_DASHBOARD_API_KEY')
