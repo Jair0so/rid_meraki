@@ -231,6 +231,17 @@ class MerakiActions(MerakiManager):
                 # Print the table after configuring all VLANs
                 self.console.print(vlan_table)
 
+    def configure_multiple_vlans(self, network_id):
+        self.console.print(f"\n[bold]Validating if {network_id} is set for multiple vlans...[/bold]")    
+
+        getter = requests.get(
+                f"{self.base_url}/networks/{network_id}/appliance/vlans/settings",
+                headers=self.headers,
+            )
+        self.console.print(getter)
+
+        
+
 
 def main():
     api_key = os.getenv('MERAKI_DASHBOARD_API_KEY')
