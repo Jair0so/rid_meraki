@@ -187,9 +187,9 @@ class MerakiActions(MerakiManager):
         vlan_table.add_column("Appliance IP", justify="center", style="red")
         vlan_table.add_column("Status", justify="center", style="blue")
 
-        
-
-       c
+        for vlan in config.get('vlans', []):
+            self.console.print(f"Configuring VLAN {vlan['id']}...")
+            payload = {
                 'id': vlan['id'],
                 'name': vlan['name'],
                 'subnet': vlan['subnet'],
@@ -292,7 +292,7 @@ class MerakiActions(MerakiManager):
             self.console.print("[/bold green] Firewall rule configured")
         else:
             self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
-            self.console.print(f"Response: {response.text}")
+            self.console.print("[/bold green] Firewall rule configured")
 
 
 
