@@ -277,7 +277,7 @@ class MerakiActions(MerakiManager):
 
         for rule in config.get('rules', []):
             self.console.print(f"Configuring fw rule {rule['id']}...")
-            self.console.print(f"{rule['comment'],rule['policy'],rule['protocol'],rule['destPort'],rule['destCidr'],rule['srcPort'],rule['srcCidr']}")
+        #   self.console.print(f"{rule['comment'],rule['policy'],rule['protocol'],rule['destPort'],rule['destCidr'],rule['srcPort'],rule['srcCidr']}")
             payload = {
                 "rules": [
                             {
@@ -289,20 +289,10 @@ class MerakiActions(MerakiManager):
                                 "srcPort": rule["srcPort"],
                                 "srcCidr": rule["srcCidr"],
                                 "syslogEnabled": rule["syslogEnabled"]
-        }
-    ]
-            }
-            
-            #payload = {         
-            #    "comment": rule["comment"],
-            #   "policy": rule["policy"],
-            #    "protocol": rule["protocol"],
-            #    "destPort": rule["destPort"],
-            #    "destCidr": rule["destCidr"],
-            #    "srcPort": rule["srcPort"],
-            #    "srcCidr": rule["srcCidr"],
-            #    "syslogEnabled": rule["syslogEnabled"]
-            #}
+                            }
+                         ]
+                      }
+     
 
         response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers, json=payload)
 
@@ -310,7 +300,7 @@ class MerakiActions(MerakiManager):
             self.console.print("[bold green] Firewall rule configured")
         else:
             self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
-            print(response.text)
+        #    print(response.text)
         #   self.console.print("[bold green] Firewall rule configured")
 
 
