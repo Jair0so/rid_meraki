@@ -289,21 +289,9 @@ class MerakiActions(MerakiManager):
                                 "srcPort": rule["srcPort"],
                                 "srcCidr": rule["srcCidr"],
                                 "syslogEnabled": rule["syslogEnabled"]
-        }
-    ]
-            }
-            
-            #payload = {         
-            #    "comment": rule["comment"],
-            #   "policy": rule["policy"],
-            #    "protocol": rule["protocol"],
-            #    "destPort": rule["destPort"],
-            #    "destCidr": rule["destCidr"],
-            #    "srcPort": rule["srcPort"],
-            #    "srcCidr": rule["srcCidr"],
-            #    "syslogEnabled": rule["syslogEnabled"]
-            #}
-
+                            }
+                         ]   
+                      }
         response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers, json=payload)
 
         if response.status_code in [200, 201, 202]:
