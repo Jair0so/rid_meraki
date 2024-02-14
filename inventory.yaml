@@ -141,10 +141,35 @@ configurations:
       lease_time: "default"
       dns_nameservers: "google_public_dns"
       boot_options: false
+  
+  firewall:    
+    rules: [
+        {
+            id: 1,
+            comment: "Allow TCP traffic to subnet with HTTP servers.",
+            policy: "allow",
+            protocol: "tcp",
+            destPort: "443",
+            destCidr: "192.168.1.0/24",
+            srcPort: "Any",
+            srcCidr: "Any",
+            syslogEnabled: false
+        }
+    ]
 
-  firewall:
-    rules:
-      - name: "Allow HTTP"
+
+
+ # firewall:
+ #   rules:
+ #     - id: "1" 
+ #       comment: "Allow TCP traffic to subnet with HTTP servers."
+ #       policy: "allow"
+ #       protocol: "tcp"
+ #       destPort: "443"
+ #       destCidr: "Any"
+ #       srcPort: "Any"
+ #       srcCidr: "Any"
+ #       syslogEnabled: false
         # Additional firewall rule settings here
         
   site_to_site_vpn:
