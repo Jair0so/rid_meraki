@@ -157,8 +157,6 @@ configurations:
         }
     ]
 
-
-
  # firewall:
  #   rules:
  #     - id: "1" 

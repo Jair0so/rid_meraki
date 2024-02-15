@@ -287,11 +287,12 @@ class MerakiActions(MerakiManager):
                                 "destPort": rule["destPort"],
                                 "destCidr": rule["destCidr"],
                                 "srcPort": rule["srcPort"],
+                             
                                 "srcCidr": rule["srcCidr"],
                                 "syslogEnabled": rule["syslogEnabled"]
                             }
                          ]
-                      }
+                        }   
      
 
         response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers, json=payload)
