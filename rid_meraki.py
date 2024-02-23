@@ -69,11 +69,12 @@ class MerakiActions(MerakiManager):
         self.console.print("[green]5.[/green] Default site creation")
         self.console.print("[green]6.[/green] Vlan creation")
         self.console.print("[green]7.[/green] Set Firewall rules")
-        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7"])
+        self.console.print("[green]8.[/green] Set DHCP protocol")
+        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8"])
         return choice
 
     def execute_action(self, org_id, choice):
-        if choice == '1' or choice == '2' or choice == '6' or choice == "7":
+        if choice == '1' or choice == '2' or choice == '6' or choice == "7" or choice == "8":
             devices = self.get_devices(org_id)
             if choice == '1':
                 for device in devices:
@@ -82,7 +83,7 @@ class MerakiActions(MerakiManager):
                 for device in devices:
                     if device['model'].startswith('MR'):
                         self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
-            elif choice == '6' or choice == "7":
+            elif choice == '6' or choice == "7" or choice == "8":
                 network_id = self.select_network(org_id)
                 if choice == "6":
                     if self.check_multiple_vlans(network_id) == False:
@@ -96,7 +97,9 @@ class MerakiActions(MerakiManager):
                         self.console.print("[cyan] Starting to configure VLANs [/cyan]")
                         self.configure_vlans(network_id)   
                 elif choice == "7":
-                    self.configure_fw_rule(network_id)   
+                    self.configure_fw_rule(network_id) 
+                elif choice == "8" :
+                    self.set_dhcp(network_id)
 
         elif choice == '3':
             self.create_network(org_id)
@@ -230,7 +233,7 @@ class MerakiActions(MerakiManager):
                 self.console.print(vlan_table)
             else:
                 self.console.print(f"[bold red]Failed to configure VLAN {vlan['id']}. Status code: {response.status_code}[/bold red]")
-                #self.console.print(f"Response: {response.text}")
+                self.console.print(f"Response: {response.text}")
                 # Add a row to the table for each VLAN configuration attempt
                 vlan_table.add_row(
                     str(vlan['id']),
@@ -293,7 +296,6 @@ class MerakiActions(MerakiManager):
                             }
                          ]
                         }   
-     
 
         response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers, json=payload)
 
@@ -305,6 +307,30 @@ class MerakiActions(MerakiManager):
         #   self.console.print("[bold green] Firewall rule configured")
 
 
+    def set_dhcp(self, network_id):
+        #load configutatio from YAML file
+        with open("inventory.yaml", "r") as file:
+            config = yaml.safe_load(file)['configurations']
+
+        for dhcp in config.get("dhcp", []):
+            payload = {
+                          "id": dhcp["id"],
+                          "fixedIpAssignments": dhcp["fixedIpAssignments"],
+                          "reservedIpRanges": dhcp["reservedIpRanges"],
+                          "dnsNameservers": dhcp["dnsNameservers"],
+                          "dhcpHandling": dhcp["dhcpHandling"],
+                          "dhcpLeaseTime": dhcp["dhcpLeaseTime"],
+                          "dhcpBootOptionsEnabled": dhcp["dhcpBootOptionsEnabled"],
+                          
+            }
+
+            response = requests.put(f"{self.base_url}/networks{network_id}/appliance/vlans", headers=self.headers, json=payload)
+
+            if response.status_code in [200, 201, 202]:
+                self.console.print("[bold green] FDHCP configured")
+            else:
+                self.console.print(f"[bold red] Failed configure FDHCP protocol. STATUS CODE: {response.status_code}[/bold red]")
+                print(response.text)
 
 
 def main():

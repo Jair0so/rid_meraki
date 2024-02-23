@@ -93,54 +93,65 @@ configurations:
         enabled: false
 
   dhcp:
-    - vlan_id: 1
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 10
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 110
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 120
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 130
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 160
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 200
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 600
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
+     - id: 10
+       fixedIpAssignments: {}
+       reservedIpRanges: []
+       dnsNameservers: "upstream_dns"
+       dhcpHandling: "Run a DHCP server"
+       dhcpLeaseTime: "1 day"
+       dhcpBootOptionsEnabled: false
+       mandatoryDhcp": {
+            "enabled": false
+        }
+
+#  - id: 1
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      dhcpLeaseTime: "default"
+#      dnsNameservers: "google_public_dns"
+#      dhcpBootOptionsEnabled: false
+#    - vlan_id: 10
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      lease_time: "default"
+#      dns_nameservers: "google_public_dns"
+#      boot_options: false
+#    - vlan_id: 110
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      lease_time: "default"
+#      dns_nameservers: "google_public_dns"
+#      boot_options: false
+#    - vlan_id: 120
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      lease_time: "default"
+#      dns_nameservers: "google_public_dns"
+#      boot_options: false
+#    - vlan_id: 130
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      lease_time: "default"
+#      dns_nameservers: "google_public_dns"
+#      boot_options: false
+#    - vlan_id: 160
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      lease_time: "default"
+#      dns_nameservers: "google_public_dns"
+#      boot_options: false
+#    - vlan_id: 200
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      lease_time: "default"
+#      dns_nameservers: "google_public_dns"
+#      boot_options: false
+#    - vlan_id: 600
+#      run_dhcp: true
+#      mandatory_dhcp: false
+#      lease_time: "default"
+#      dns_nameservers: "google_public_dns"
+#      boot_options: false
   
   firewall:    
     rules: [
