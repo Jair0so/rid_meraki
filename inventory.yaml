@@ -2,19 +2,6 @@
 device_name: "MX68-1"
 configurations:
   vlans:
-    #default range is /20 menaing you have from 10.0.0.1 - 10.0.15.254 for a total of 16 vlans
-    #default uses 7 networks from the /20
-    #- id: 1
-    #  name: "MGMT"
-    #  subnet: "192.168.128.0/24"
-    #  applianceIp: "192.168.128.1"
-    #  groupPolicyId: ""
-    #  templateVlanType: "same"
-    #  cidr: "192.168.128.0/24"
-    #  mask: 24
-    #  ipv6:
-    #    enabled: false
-
     - id: 10
       name: "Meraki"
       subnet: "10.250.0.0/24"
@@ -25,6 +12,15 @@ configurations:
       mask: 24
       ipv6:
         enabled: false
+      fixedIpAssignments: {}
+      reservedIpRanges: []
+      dnsNameservers: "google_dns"
+      dhcpHandling: "Run a DHCP server"
+      dhcpLeaseTime: "1 day"
+      dhcpBootOptionsEnabled: False
+      #dhcpBootNextServer: ""
+      #dhcpBootFilename: ""
+      dhcpOptions: []
       
     - id: 110
       name: "Printers"
@@ -36,7 +32,17 @@ configurations:
       mask: 24
       ipv6:
         enabled: false
-
+      fixedIpAssignments: {}
+      reservedIpRanges: []
+      dnsNameservers: "google_dns"
+      dhcpHandling: "Run a DHCP server"
+      dhcpLeaseTime: "1 day"
+      dhcpBootOptionsEnabled: False
+      #dhcpBootNextServer: ""
+      #dhcpBootFilename: ""
+      dhcpOptions: []
+    
+    
     - id: 120
       name: "Servers"
       subnet: "10.250.2.0/24"
@@ -47,7 +53,16 @@ configurations:
       mask: 24
       ipv6:
         enabled: false
-
+      fixedIpAssignments: {}
+      reservedIpRanges: []
+      dnsNameservers: "google_dns"
+      dhcpHandling: "Run a DHCP server"
+      dhcpLeaseTime: "1 day"
+      dhcpBootOptionsEnabled: False
+      #dhcpBootNextServer: ""
+      #dhcpBootFilename: ""
+      dhcpOptions: []
+    
     - id: 130
       name: "APs"
       subnet: "10.250.3.0/24"
@@ -58,7 +73,16 @@ configurations:
       mask: 24
       ipv6:
         enabled: false
-
+      fixedIpAssignments: {}
+      reservedIpRanges: []
+      dnsNameservers: "google_dns"
+      dhcpHandling: "Run a DHCP server"
+      dhcpLeaseTime: "1 day"
+      dhcpBootOptionsEnabled: False
+      #dhcpBootNextServer: ""
+      #dhcpBootFilename: ""
+      dhcpOptions: []
+    
     - id: 160
       name: "Users"
       subnet: "10.250.4.0/24"
@@ -69,7 +93,16 @@ configurations:
       mask: 24
       ipv6:
         enabled: false
-
+      fixedIpAssignments: {}
+      reservedIpRanges: []
+      dnsNameservers: "google_dns"
+      dhcpHandling: "Run a DHCP server"
+      dhcpLeaseTime: "1 day"
+      dhcpBootOptionsEnabled: False
+      #dhcpBootNextServer: ""
+      #dhcpBootFilename: ""
+      dhcpOptions: []
+    
     - id: 200
       name: "External"
       subnet: "10.250.5.0/24"
@@ -80,7 +113,16 @@ configurations:
       mask: 24
       ipv6:
         enabled: false
-
+      fixedIpAssignments: {}
+      reservedIpRanges: []
+      dnsNameservers: "google_dns"
+      dhcpHandling: "Run a DHCP server"
+      dhcpLeaseTime: "1 day"
+      dhcpBootOptionsEnabled: False
+      #dhcpBootNextServer: ""
+      #dhcpBootFilename: ""
+      dhcpOptions: []
+    
     - id: 600
       name: "Guest"
       subnet: "10.250.6.0/24"
@@ -91,56 +133,15 @@ configurations:
       mask: 24
       ipv6:
         enabled: false
-
-  dhcp:
-    - vlan_id: 1
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 10
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 110
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 120
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 130
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 160
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 200
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
-    - vlan_id: 600
-      run_dhcp: true
-      mandatory_dhcp: false
-      lease_time: "default"
-      dns_nameservers: "google_public_dns"
-      boot_options: false
+      fixedIpAssignments: {}
+      reservedIpRanges: []
+      dnsNameservers: "google_dns"
+      dhcpHandling: "Run a DHCP server"
+      dhcpLeaseTime: "1 day"
+      dhcpBootOptionsEnabled: False
+      #dhcpBootNextServer: ""
+      #dhcpBootFilename: ""
+      dhcpOptions: []
 
   firewall:
     rules:

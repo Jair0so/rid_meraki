@@ -68,11 +68,13 @@ class MerakiActions(MerakiManager):
         self.console.print("[green]4.[/green] Bind hardware to a network")
         self.console.print("[green]5.[/green] Default site creation")
         self.console.print("[green]6.[/green] Vlan creation")
-        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6"])
+        self.console.print("[green]7.[/green] Set Firewall rules")
+        self.console.print("[green]8.[/green] DISPONIBLE")
+        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8"])
         return choice
 
     def execute_action(self, org_id, choice):
-        if choice == '1' or choice == '2' or choice == '6':
+        if choice == '1' or choice == '2' or choice == '6' or choice == "7" or choice == "8":
             devices = self.get_devices(org_id)
             if choice == '1':
                 for device in devices:
@@ -81,20 +83,26 @@ class MerakiActions(MerakiManager):
                 for device in devices:
                     if device['model'].startswith('MR'):
                         self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
-            elif choice == '6':
+            elif choice == '6' or choice == "7" or choice == '8':
                 network_id = self.select_network(org_id)
-                if self.check_multiple_vlans(network_id) == False:
-                    self.console.print('\n')
-                    self.console.print("[cyan] updating network to accept multiple vlans [/cyan]")
-                    self.enable_multiple_vlans(network_id)
-                    self.console.print('\n')
-                    self.console.print("[cyan] Starting to configure VLANs [/cyan]")
-                    self.configure_vlans(network_id)
-                else:
-                    self.console.print("[cyan] Starting to configure VLANs [/cyan]")
-                    self.configure_vlans(network_id)
-                
-                
+                if choice == "6":
+                    if self.check_multiple_vlans(network_id) == False:
+                        self.console.print('\n')
+                        self.console.print("[cyan] updating network to accept multiple vlans [/cyan]")
+                        self.enable_multiple_vlans(network_id)
+                        self.console.print('\n')
+                        self.console.print("[cyan] Starting to configure VLANs [/cyan]")                        
+                        self.configure_vlans(network_id)
+                        self.configure_dhcp(network_id)
+                        self.update_vlan_details(network_id)
+                    else:
+                        self.console.print("[cyan] Starting to configure VLANs [/cyan]")
+                        self.configure_vlans(network_id)   
+                        self.update_vlan_details(network_id)
+                elif choice == "7":
+                    self.configure_fw_rule(network_id) 
+
+
 
         elif choice == '3':
             self.create_network(org_id)
@@ -102,8 +110,8 @@ class MerakiActions(MerakiManager):
             self.bind_hardware_to_network(org_id)
         elif choice == '5':
             self.create_network(org_id)
-            self.bind_hardware_to_network(org_id)
-        
+            self.bind_harsordware_to_network(org_id)
+       
             
 
     def create_network(self, org_id):
@@ -198,16 +206,7 @@ class MerakiActions(MerakiManager):
                 'templateVlanType': vlan['templateVlanType'],
                 'cidr': vlan['cidr'],
                 'mask': vlan['mask'],
-                #'ipv6': {
-                #    'enabled': False
-                #}
-                #'mandatoryDhcp': { 'enabled': True }
             }
-            # imprimimos la informacion para que ver que tenemos la info correcta
-            #self.console.print(payload)
-            #
-            # hacemos el post con la configuracion de las vlans
-            #
             self.console.print("\n")
 
             response = requests.post(
@@ -228,7 +227,7 @@ class MerakiActions(MerakiManager):
                 self.console.print(vlan_table)
             else:
                 self.console.print(f"[bold red]Failed to configure VLAN {vlan['id']}. Status code: {response.status_code}[/bold red]")
-                #self.console.print(f"Response: {response.text}")
+                self.console.print(f"Response: {response.text}")
                 # Add a row to the table for each VLAN configuration attempt
                 vlan_table.add_row(
                     str(vlan['id']),
@@ -275,26 +274,83 @@ class MerakiActions(MerakiManager):
 
         for rule in config.get('rules', []):
             self.console.print(f"Configuring fw rule {rule['id']}...")
+        #   self.console.print(f"{rule['comment'],rule['policy'],rule['protocol'],rule['destPort'],rule['destCidr'],rule['srcPort'],rule['srcCidr']}")
             payload = {
-                'comment': rule['comment'],
-                'policy': rule['policy'],
-                'protocol': rule['protocol'],
-                'destPort': rule['destPort'],
-                'destCidr': rule['destCidr'],
-                'srcPort': rule['srcPort'],
-                'srcCidr': rule['srcCidr'],
-                'syslogEnabled': False
-            }
+                "rules": [
+                            {
+                                "comment": rule["comment"],
+                                "policy": rule["policy"],
+                                "protocol": rule["protocol"],
+                                "destPort": rule["destPort"],
+                                "destCidr": rule["destCidr"],
+                                "srcPort": rule["srcPort"],
+                                "srcCidr": rule["srcCidr"],
+                                "syslogEnabled": rule["syslogEnabled"]
+                            }
+                         ]
+                        }   
 
         response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers, json=payload)
 
         if response.status_code in [200, 201, 202]:
-            self.console.print("[/bold green] Firewall rule configured")
+            self.console.print("[bold green] Firewall rule configured")
         else:
             self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
-            self.console.print("[/bold green] Firewall rule configured")
+        #    print(response.text)
+        #   self.console.print("[bold green] Firewall rule configured")
 
 
+    def update_vlan_details(self, network_id):
+        #########
+        # Load VLAN configurations from the YAML file
+        #########
+
+        with open('inventory.yaml', 'r') as file:
+            config = yaml.safe_load(file)
+
+        #########
+        # Create a table to display VLAN configuration results
+        #########
+        vlan_table = Table(title="VLAN Update Results")
+        vlan_table.add_column("VLAN ID", justify="center", style="cyan")
+        vlan_table.add_column("Name", justify="center", style="magenta")
+        vlan_table.add_column("dhcpHandling", justify="center", style="green")
+        vlan_table.add_column("dnsNameservers", justify="center", style="red")
+        vlan_table.add_column("Status", justify="center", style="blue")
+
+        vlans = config.get('configurations', {}).get('vlans', [])
+        for vlan in vlans:
+            vlan_id = vlan.get('id')
+            self.console.print(f"\n[bold]Updating VLAN {vlan_id} in network {network_id}...[/bold]")
+
+            #########
+            # Prepare the payload excluding keys not accepted by the API
+            #########
+            payload = {key: value for key, value in vlan.items() if key not in ['id', 'cidr', 'mask']}
+            #if 'ipv6' in vlan:  # Example to handle specific keys if needed
+            #    payload['ipv6'] = vlan['ipv6']['enabled']
+            
+            #########
+            # Update VLAN details via the Meraki API
+            #########
+            response = requests.put(
+                f"{self.base_url}/networks/{network_id}/appliance/vlans/{vlan_id}",
+                headers=self.headers,
+                json=payload
+            )
+    
+            if response.status_code in [200, 201, 204]:
+                vlan_table.add_row(
+                str(vlan_id),
+                vlan.get('name', 'N/A'),
+                vlan.get('dhcpHandling', 'N/A'),
+                vlan.get('dnsNameservers', 'N/A'),
+                "OK",
+                )
+                self.console.print(vlan_table)
+            else:
+                self.console.print(f"[bold red]Failed to update VLAN {vlan_id}. Status code: {response.status_code}[/bold red]")
+                self.console.print(f"Response: {response.text}")
 
 
 def main():
