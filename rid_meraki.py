@@ -287,8 +287,7 @@ class MerakiActions(MerakiManager):
         for fw_rule in fw_rules:
             fw_rule_id = fw_rule.get('comment')
             self.console.print(f"\n[bold green]Updating Firewall rule {fw_rule_id} in network ...[/bold green]")
-        #import ipdb; ipdb.set_trace()
-        #payload = {key: value for key, value in fw_rule.items() if key not in ['id', 'cidr', 'mask']}
+
         payload = {"rules": fw_rules}
 
         response = requests.put(
@@ -331,8 +330,6 @@ class MerakiActions(MerakiManager):
             # Prepare the payload excluding keys not accepted by the API
             #########
             payload = {key: value for key, value in vlan.items() if key not in ['id', 'cidr', 'mask']}
-            #if 'ipv6' in vlan:  # Example to handle specific keys if needed
-            #    payload['ipv6'] = vlan['ipv6']['enabled']
             
             #########
             # Update VLAN details via the Meraki API
