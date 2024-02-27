@@ -143,10 +143,23 @@ configurations:
       #dhcpBootFilename: ""
       dhcpOptions: []
 
-  firewall:
-    rules:
-      - name: "Allow HTTP"
-        # Additional firewall rule settings here
+  firewallRules:
+    - comment: "Allow HTTP"
+      policy: "allow"
+      protocol: "tcp"
+      srcPort: "Any"
+      srcCidr: "Any"
+      destPort: "80"
+      destCidr: "Any"
+      syslogEnabled: false
+    - comment: "Allow HTTPS"
+      policy: "allow"
+      protocol: "tcp"
+      srcPort: "Any"
+      srcCidr: "Any"
+      destPort: "443"
+      destCidr: "Any"
+      syslogEnabled: false
         
   site_to_site_vpn:
     # VPN-specific settings here

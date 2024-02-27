@@ -100,7 +100,7 @@ class MerakiActions(MerakiManager):
                         self.configure_vlans(network_id)   
                         self.update_vlan_details(network_id)
                 elif choice == "7":
-                    self.configure_fw_rule(network_id) 
+                    self.configure_fw_rule(network_id)
 
 
 
@@ -267,37 +267,41 @@ class MerakiActions(MerakiManager):
             self.console.print(f"[bold red] Failed to enable VLANs. STATUS CODE: {response.status_code}[/bold red]")
             self.console.print(f"Response: {response.text}")
 
+
+
+
     def configure_fw_rule(self, network_id):
+        #########
+        # This function is to update firewall rules with PUT
         # Load configurations from YAML file
+        #########
+
         with open('inventory.yaml', 'r') as file:
-            config = yaml.safe_load(file)['configurations']['firewall']
+            config = yaml.safe_load(file)
 
-        for rule in config.get('rules', []):
-            self.console.print(f"Configuring fw rule {rule['id']}...")
-        #   self.console.print(f"{rule['comment'],rule['policy'],rule['protocol'],rule['destPort'],rule['destCidr'],rule['srcPort'],rule['srcCidr']}")
-            payload = {
-                "rules": [
-                            {
-                                "comment": rule["comment"],
-                                "policy": rule["policy"],
-                                "protocol": rule["protocol"],
-                                "destPort": rule["destPort"],
-                                "destCidr": rule["destCidr"],
-                                "srcPort": rule["srcPort"],
-                                "srcCidr": rule["srcCidr"],
-                                "syslogEnabled": rule["syslogEnabled"]
-                            }
-                         ]
-                        }   
+        
+        
+        self.console.print("[bold green]Configuring fw rules...[/bold green]")
+        fw_rules = config.get('configurations', {}).get('firewallRules', [])
 
-        response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers, json=payload)
+        for fw_rule in fw_rules:
+            fw_rule_id = fw_rule.get('comment')
+            self.console.print(f"\n[bold green]Updating Firewall rule {fw_rule_id} in network ...[/bold green]")
+        #import ipdb; ipdb.set_trace()
+        #payload = {key: value for key, value in fw_rule.items() if key not in ['id', 'cidr', 'mask']}
+        payload = {"rules": fw_rules}
+
+        response = requests.put(
+            f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", 
+            headers=self.headers, 
+            json=payload
+        )
 
         if response.status_code in [200, 201, 202]:
             self.console.print("[bold green] Firewall rule configured")
         else:
             self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
-        #    print(response.text)
-        #   self.console.print("[bold green] Firewall rule configured")
+
 
 
     def update_vlan_details(self, network_id):
