@@ -276,6 +276,9 @@ class MerakiActions(MerakiManager):
         # Load configurations from YAML file
         #########
 
+        #response = requests.get(f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", headers=self.headers)
+        #print(response.json()) 
+    
         with open('inventory.yaml', 'r') as file:
             config = yaml.safe_load(file)
 
@@ -283,19 +286,19 @@ class MerakiActions(MerakiManager):
         
         self.console.print("[bold green]Configuring fw rules...[/bold green]")
         fw_rules = config.get('configurations', {}).get('firewallRules', [])
-
+        
         for fw_rule in fw_rules:
             fw_rule_id = fw_rule.get('comment')
             self.console.print(f"\n[bold green]Updating Firewall rule {fw_rule_id} in network ...[/bold green]")
-
+        
         payload = {"rules": fw_rules}
-
+        
         response = requests.put(
             f"{self.base_url}/networks/{network_id}/appliance/firewall/l3FirewallRules", 
             headers=self.headers, 
             json=payload
         )
-
+        
         if response.status_code in [200, 201, 202]:
             self.console.print("[bold green] Firewall rule configured")
         else:
