@@ -69,7 +69,7 @@ class MerakiActions(MerakiManager):
         self.console.print("[green]5.[/green] Default site creation")
         self.console.print("[green]6.[/green] Vlan creation")
         self.console.print("[green]7.[/green] Set Firewall rules")
-        self.console.print("[green]8.[/green] DISPONIBLE")
+        self.console.print("[green]8.[/green] Set Threat Protection")
         choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8"])
         return choice
 
@@ -101,7 +101,8 @@ class MerakiActions(MerakiManager):
                         self.update_vlan_details(network_id)
                 elif choice == "7":
                     self.configure_fw_rule(network_id)
-
+                elif choice == "8":
+                    self.threatProtecction(network_id)
 
 
         elif choice == '3':
@@ -355,6 +356,34 @@ class MerakiActions(MerakiManager):
             else:
                 self.console.print(f"[bold red]Failed to update VLAN {vlan_id}. Status code: {response.status_code}[/bold red]")
                 self.console.print(f"Response: {response.text}")
+
+
+
+    def threatProtecction(self, network_id):
+        
+        with open('inventory.yaml', 'r') as file:
+            config = yaml.safe_load(file)
+
+        self.console.print("[bold green]Setting threat protection..[/bold green]")
+        tp_configuration = config.get("configurations", {}).get("threat_protection", [])
+                
+        for tp_conf in tp_configuration:
+            tp_conf_id = tp_conf.get("mode")
+            self.console.print(f"\n[bold green]Updating Threat Protection {tp_conf_id} in network ...[/bold green]")
+
+            payload = {key: value for key, value in tp_conf.items()}
+
+            response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/security/intrusion",
+                                    headers=self.headers,
+                                    json=payload
+                                    ) 
+            
+            if response.status_code in [200, 201, 202]:
+                self.console.print("Configuracion exitosa")
+            elif response.status_code in [400, 401, 404]:
+                self.console.print("Configuracion fallida")
+                print(response.text)
+
 
 
 def main():

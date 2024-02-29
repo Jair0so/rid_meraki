@@ -240,8 +240,12 @@ configurations:
       destPort: "80,443"
       destCidr: "repository.eset.com"
       syslogEnabled: false
-        
-  site_to_site_vpn:
+   
+  threat_protection:
+    - mode: "prevention"
+      idsRulesets: "balanced"    
+    
+      site_to_site_vpn:
     # VPN-specific settings here
   routing:
     # Routing-specific settings here
@@ -251,7 +255,7 @@ configurations:
     # Active Directory-specific settings here
   sd_wan_traffic_shaping:
     # SD-WAN & Traffic Shaping-specific settings here
-  threat_protection:
+  
     # Threat Protection-specific settings here
   content_filtering:
     # Content Filtering-specific settings here
