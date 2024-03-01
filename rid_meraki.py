@@ -69,7 +69,7 @@ class MerakiActions(MerakiManager):
         self.console.print("[green]5.[/green] Default site creation")
         self.console.print("[green]6.[/green] Vlan creation")
         self.console.print("[green]7.[/green] Set Firewall rules")
-        self.console.print("[green]8.[/green] Set Threat Protection")
+        self.console.print("[green]8.[/green] DISPONIBLE")
         choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8"])
         return choice
 
@@ -102,7 +102,8 @@ class MerakiActions(MerakiManager):
                 elif choice == "7":
                     self.configure_fw_rule(network_id)
                 elif choice == "8":
-                    self.threatProtecction(network_id)
+                    self.configure_appliance_ports(network_id)
+
 
 
         elif choice == '3':
@@ -283,8 +284,6 @@ class MerakiActions(MerakiManager):
         with open('inventory.yaml', 'r') as file:
             config = yaml.safe_load(file)
 
-        
-        
         self.console.print("[bold green]Configuring fw rules...[/bold green]")
         fw_rules = config.get('configurations', {}).get('firewallRules', [])
         
@@ -357,32 +356,44 @@ class MerakiActions(MerakiManager):
                 self.console.print(f"[bold red]Failed to update VLAN {vlan_id}. Status code: {response.status_code}[/bold red]")
                 self.console.print(f"Response: {response.text}")
 
-
-
-    def threatProtecction(self, network_id):
-        
+    def configure_appliance_ports(self, network_id):
         with open('inventory.yaml', 'r') as file:
             config = yaml.safe_load(file)
 
-        self.console.print("[bold green]Setting threat protection..[/bold green]")
-        tp_configuration = config.get("configurations", {}).get("threat_protection", [])
-                
-        for tp_conf in tp_configuration:
-            tp_conf_id = tp_conf.get("mode")
-            self.console.print(f"\n[bold green]Updating Threat Protection {tp_conf_id} in network ...[/bold green]")
+        port_table = Table(title="Port Configuration")
+        port_table.add_column("Port Number", justify="center", style="cyan")
+        port_table.add_column("Type", justify="center", style="magenta")
+        port_table.add_column("Native Vlan", justify="center", style="green")
+        port_table.add_column("Status", justify="center", style="blue")
 
-            payload = {key: value for key, value in tp_conf.items()}
+       #import ipdb; ipdb.set_trace()
 
-            response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/security/intrusion",
-                                    headers=self.headers,
-                                    json=payload
-                                    ) 
-            
+        ports = config.get('configurations', {}).get('appliance_ports', [])
+        for port in ports:
+            port_id = port.get('portId')
+            self.console.print(f"\n[bold]Updating port {port_id} configuration in network {network_id}...[/bold]")
+
+            #import ipdb; ipdb.set_trace()
+            # Prepare the payload excluding the portId key as it's used in the URL, not in the payload
+            payload = {key: value for key, value in port.items() if key not in ['portId']}
+                    
+            response = requests.put(
+                f"{self.base_url}/networks/{network_id}/appliance/ports/{port_id}",
+                headers=self.headers,
+                json=payload
+            )
+        
             if response.status_code in [200, 201, 202]:
-                self.console.print("Configuracion exitosa")
-            elif response.status_code in [400, 401, 404]:
-                self.console.print("Configuracion fallida")
-                print(response.text)
+                port_table.add_row(
+                str(port_id),
+                str(port.get('type', 'N/A')),
+                str(port.get('vlan', 'N/A')),
+                "OK",
+                )
+                self.console.print(port_table)
+            else:
+                self.console.print(f"[bold red]Failed to update Appliance Port {port_id}. Status code: {response.status_code}[/bold red]")
+                self.console.print(f"Response: {response.text}")
 
 
 

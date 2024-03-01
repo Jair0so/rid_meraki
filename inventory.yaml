@@ -143,6 +143,22 @@ configurations:
       #dhcpBootFilename: ""
       dhcpOptions: []
 
+  appliance_ports:
+    - portId: 3
+      enabled: true
+      type: "trunk"
+      dropUntaggedTraffic: false
+      vlan: 10
+      allowedVlans: "all"
+      
+    - portId: 4
+      enabled: true
+      type: "trunk"
+      dropUntaggedTraffic: false
+      vlan: 10
+      allowedVlans: "all"
+      
+
   firewallRules:
     - comment: "Guest"
       policy: "deny"
