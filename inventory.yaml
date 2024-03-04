@@ -256,6 +256,11 @@ configurations:
       destPort: "80,443"
       destCidr: "repository.eset.com"
       syslogEnabled: false
+
+  firewallRulesL7:
+    - policy: "deny"
+      type: "host"
+      value: "google" 
    
   threat_protection:
     - mode: "prevention"

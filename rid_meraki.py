@@ -71,11 +71,12 @@ class MerakiActions(MerakiManager):
         self.console.print("[green]7.[/green] Set Firewall rules")
         self.console.print("[green]8.[/green] DISPONIBLE")
         self.console.print("[green]9.[/green] Set Threat Protection")        
-        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9"])
+        self.console.print("[green]10.[/green] firewall l7")        
+        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
         return choice
 
     def execute_action(self, org_id, choice):
-        if choice == '1' or choice == '2' or choice == '6' or choice == "7" or choice == "8" or choice == "9":
+        if choice == '1' or choice == '2' or choice == '6' or choice == "7" or choice == "8" or choice == "9" or choice == "10":
             devices = self.get_devices(org_id)
             if choice == '1':
                 for device in devices:
@@ -84,7 +85,7 @@ class MerakiActions(MerakiManager):
                 for device in devices:
                     if device['model'].startswith('MR'):
                         self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
-            elif choice == '6' or choice == "7" or choice == '8' or choice == "9":
+            elif choice == '6' or choice == "7" or choice == '8' or choice == "9" or choice == "10":
                 network_id = self.select_network(org_id)
                 if choice == "6":
                     if self.check_multiple_vlans(network_id) == False:
@@ -106,6 +107,8 @@ class MerakiActions(MerakiManager):
                     self.configure_appliance_ports(network_id)
                 elif choice == "9":
                     self.threatProtecction(network_id)
+                elif choice == "10":
+                    self.firewallL7(network_id)
 
 
 
@@ -307,6 +310,28 @@ class MerakiActions(MerakiManager):
         else:
             self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
 
+        ## Firewall rules L7
+        self.console.print("[bold green]Configuring fw rules l7...[/bold green]")
+        l7fw_rules = config.get('configurations', {}).get('firewallRulesL7', [])
+
+        for l7fw_rule in l7fw_rules:
+            l7fw_rule_policy = l7fw_rule.get("policy")
+            l7fw_rule_type = l7fw_rule.get("type")
+            l7fw_rule_value = l7fw_rule.get("value")
+            self.console.print(f"\n[bold green]Updating Firewall rule of {l7fw_rule_policy} in {l7fw_rule_type} {l7fw_rule_value} in network ...[/bold green]")
+
+        payload = {"rules": l7fw_rules}
+
+        response = requests.put(
+            f"{self.base_url}/networks/{network_id}/appliance/firewall/l7FirewallRules",
+            headers=self.headers,
+            json=payload)
+
+        if response.status_code in [200, 201, 202]:
+            self.console.print("[bold green] Firewall rule configured")
+        else:
+            self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
+            self.console.print(response.text)
 
 
     def update_vlan_details(self, network_id):
