@@ -70,11 +70,12 @@ class MerakiActions(MerakiManager):
         self.console.print("[green]6.[/green] Vlan creation")
         self.console.print("[green]7.[/green] Set Firewall rules")
         self.console.print("[green]8.[/green] DISPONIBLE")
-        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8"])
+        self.console.print("[green]9.[/green] Set Threat Protection")        
+        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9"])
         return choice
 
     def execute_action(self, org_id, choice):
-        if choice == '1' or choice == '2' or choice == '6' or choice == "7" or choice == "8":
+        if choice == '1' or choice == '2' or choice == '6' or choice == "7" or choice == "8" or choice == "9":
             devices = self.get_devices(org_id)
             if choice == '1':
                 for device in devices:
@@ -83,7 +84,7 @@ class MerakiActions(MerakiManager):
                 for device in devices:
                     if device['model'].startswith('MR'):
                         self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
-            elif choice == '6' or choice == "7" or choice == '8':
+            elif choice == '6' or choice == "7" or choice == '8' or choice == "9":
                 network_id = self.select_network(org_id)
                 if choice == "6":
                     if self.check_multiple_vlans(network_id) == False:
@@ -103,6 +104,8 @@ class MerakiActions(MerakiManager):
                     self.configure_fw_rule(network_id)
                 elif choice == "8":
                     self.configure_appliance_ports(network_id)
+                elif choice == "9":
+                    self.threatProtecction(network_id)
 
 
 
@@ -355,6 +358,32 @@ class MerakiActions(MerakiManager):
             else:
                 self.console.print(f"[bold red]Failed to update VLAN {vlan_id}. Status code: {response.status_code}[/bold red]")
                 self.console.print(f"Response: {response.text}")
+
+    def threatProtecction(self, network_id):
+        
+        with open('inventory.yaml', 'r') as file:
+            config = yaml.safe_load(file)
+
+        self.console.print("[bold green]Setting threat protection..[/bold green]")
+        tp_configuration = config.get("configurations", {}).get("threat_protection", [])
+                
+        for tp_conf in tp_configuration:
+            tp_conf_id = tp_conf.get("mode")
+            self.console.print(f"\n[bold green]Updating Threat Protection {tp_conf_id} in network ...[/bold green]")
+
+            payload = {key: value for key, value in tp_conf.items()}
+
+            response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/security/intrusion",
+                                    headers=self.headers,
+                                    json=payload
+                                    ) 
+            
+            if response.status_code in [200, 201, 202]:
+                self.console.print("Threat Protection options enable")
+            elif response.status_code in [400, 401, 404]:
+                self.console.print("Failed to update threat protection.")
+                print(response.text)
+
 
     def configure_appliance_ports(self, network_id):
         with open('inventory.yaml', 'r') as file:
