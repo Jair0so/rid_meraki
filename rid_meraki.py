@@ -71,7 +71,7 @@ class MerakiActions(MerakiManager):
         self.console.print("[green]7.[/green] Set Firewall rules")
         self.console.print("[green]8.[/green] DISPONIBLE")
         self.console.print("[green]9.[/green] Set Threat Protection")        
-        self.console.print("[green]10.[/green] firewall l7")        
+        self.console.print("[green]10.[/green] DISPONIBLE")        
         choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
         return choice
 
@@ -107,8 +107,7 @@ class MerakiActions(MerakiManager):
                     self.configure_appliance_ports(network_id)
                 elif choice == "9":
                     self.threatProtecction(network_id)
-                elif choice == "10":
-                    self.firewallL7(network_id)
+                
 
 
 
