@@ -60,6 +60,7 @@ class MerakiActions(MerakiManager):
         network_id = Prompt.ask("Enter the network ID you want to add the vlans")
         return network_id
 
+
     def show_menu(self):
         self.console.print("[bold magenta]Select an option:[/bold magenta]")
         self.console.print("[green]1.[/green] Provide all devices in the network")
@@ -107,7 +108,8 @@ class MerakiActions(MerakiManager):
                     self.configure_appliance_ports(network_id)
                 elif choice == "9":
                     self.threatProtecction(network_id)
-                
+                elif choice == "10":
+                    self.configure_wireless(network_id)
 
 
 
@@ -448,7 +450,44 @@ class MerakiActions(MerakiManager):
                 self.console.print(f"[bold red]Failed to update Appliance Port {port_id}. Status code: {response.status_code}[/bold red]")
                 self.console.print(f"Response: {response.text}")
 
+    def configure_wireless(self, network_id):
+        with open("inventory.yaml", "r") as file:
+            config = yaml.safe_load(file)
 
+            wireless_table = Table(title="Wireless Configuration")
+            wireless_table.add_column("number", justify="center", style="magenta")
+            wireless_table.add_column("name", justify="center", style="green")            
+            wireless_table.add_column("auth_mode", justify="center", style="blue")
+            wireless_table.add_column("Pre-shared key", justify="center", style="cyan")            
+
+        wireless_ssid = config.get("configurations", {}).get("wireless_ssid", [])
+        
+        for wireless in wireless_ssid:
+            wireless_name = wireless.get("name")
+            wireless_number = wireless.get("number")
+            self.console.print(f"\n[bold]Updating Wireless {wireless_name} in network {network_id}...[/bold]")
+        
+        payload = {key: value for key, value in wireless.items() if key not in ['wireless_name']}
+
+        self.console.print(wireless_number)
+        response = requests.put(f"{self.base_url}/networks/{network_id}/wireless/ssids/{wireless_number}", 
+                                headers=self.headers, 
+                                json=payload)
+
+        if response.status_code in [200, 201, 2022]:
+            wireless_table.add_row(
+                str(wireless_number),
+                str(wireless_name),
+                str(wireless.get("authMode", "N/A")),
+                str(wireless.get("psk", "N/A"))
+            )
+
+            self.console.print(wireless_table)
+            self.console.print("[bold green] Wireless Configured")
+
+        else:
+            self.console.print(f"Failed configuration. Error {response.status_code}")
+            self.console.print(response.text)
 
 def main():
     api_key = os.getenv('MERAKI_DASHBOARD_API_KEY')

@@ -1,6 +1,6 @@
 PyYAML==6.0.1
 requests==2.31.0
 requests-toolbelt==1.0.0
-rest.connector==24.1
+rest.connector==24.2.0
 rich==13.7.0
 pyats[full]
