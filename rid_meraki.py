@@ -28,6 +28,8 @@ class MerakiManager:
     def get_devices(self, org_id):
         response = requests.get(f'{self.base_url}/organizations/{org_id}/inventoryDevices', headers=self.headers)
         return response.json()
+    
+        
 
 class MerakiActions(MerakiManager):
     def __init__(self, api_key):
@@ -60,6 +62,19 @@ class MerakiActions(MerakiManager):
         network_id = Prompt.ask("Enter the network ID you want to add the vlans")
         return network_id
 
+    def select_serial(self, org_id):
+        serial = self.get_devices(org_id)
+        serial_table = Table(title="Devices")
+        serial_table.add_column("Model", style="cyan")
+        serial_table.add_column("Serial", style="magenta")
+
+        for info_device in serial:
+            serial_table.add_row(str(info_device["model"]), info_device["serial"])
+
+        self.console.print(serial_table)
+        serial_device = Prompt.ask("Enter de device serial you want to configured ")
+        return serial_device
+        
 
     def show_menu(self):
         self.console.print("[bold magenta]Select an option:[/bold magenta]")
@@ -86,7 +101,7 @@ class MerakiActions(MerakiManager):
                 for device in devices:
                     if device['model'].startswith('MR'):
                         self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
-            elif choice == '6' or choice == "7" or choice == '8' or choice == "9" or choice == "10":
+            elif choice == '6' or choice == "7" or choice == '8' or choice == "9":
                 network_id = self.select_network(org_id)
                 if choice == "6":
                     if self.check_multiple_vlans(network_id) == False:
@@ -108,8 +123,10 @@ class MerakiActions(MerakiManager):
                     self.configure_appliance_ports(network_id)
                 elif choice == "9":
                     self.threatProtecction(network_id)
-                elif choice == "10":
-                    self.configure_wireless(network_id)
+            elif choice == "10":
+                serial= self.select_serial(org_id)
+                self.radio_settings(serial)
+                    # self.configure_wireless(network_id)
 
 
 
@@ -469,7 +486,7 @@ class MerakiActions(MerakiManager):
         
         payload = {key: value for key, value in wireless.items() if key not in ['wireless_name']}
 
-        self.console.print(wireless_number)
+    
         response = requests.put(f"{self.base_url}/networks/{network_id}/wireless/ssids/{wireless_number}", 
                                 headers=self.headers, 
                                 json=payload)
@@ -488,6 +505,33 @@ class MerakiActions(MerakiManager):
         else:
             self.console.print(f"Failed configuration. Error {response.status_code}")
             self.console.print(response.text)
+
+    def radio_settings(self, serial):
+        with open("inventory.yaml", "r") as file:
+            config = yaml.safe_load(file)
+
+        radio_params = config.get("configurations", {}).get("wireless_ratio_settings", {})
+
+        for settings in radio_params:
+            twofourchannel = settings.get("twoFourGhzSettings").get("channel")
+            twofourtarget = settings.get("twoFourGhzSettings").get("targetPower")
+            fivechannel = settings.get("fiveGhzSettings").get("channel")
+            fivetarget = settings.get("fiveGhzSettings").get("targetPower")
+            self.console.print(f"\n[bold]Updating Wireless in 2.4Ghz in channel {twofourchannel} and target Power {twofourtarget}...[/bold]")
+            self.console.print(f"\n[bold]Updating Wireless in 5 Ghz in channel {fivechannel} in network {fivetarget}...[/bold]")
+
+
+        payload = {key: value for key, value in settings.items() if key not in ['rfProfileId']}
+
+        response = requests.put(f"{self.base_url}/devices/{serial}/wireless/radio/settings", 
+                                headers= self.headers,
+                                json=payload)
+        
+        if response.status_code == 200:
+            self.console.print("Radio Setting succesfull")
+        else:
+            self.console.print(f"Failed Radio Settings, error {response.status_code}")
+
 
 def main():
     api_key = os.getenv('MERAKI_DASHBOARD_API_KEY')
