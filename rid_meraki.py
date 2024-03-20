@@ -139,7 +139,6 @@ class MerakiActions(MerakiManager):
             self.bind_harsordware_to_network(org_id)
        
             
-
     def create_network(self, org_id):
         self.console.print("\n[bold]Creating a new network...[/bold]")
         name = self.console.input("[bold cyan]Enter network name: [/bold cyan]")
