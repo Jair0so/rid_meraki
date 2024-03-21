@@ -126,7 +126,7 @@ class MerakiActions(MerakiManager):
             elif choice == "10":
                 serial= self.select_serial(org_id)
                 self.radio_settings(serial)
-                    # self.configure_wireless(network_id)
+                #self.configure_wireless(network_id)
 
 
 
@@ -136,7 +136,7 @@ class MerakiActions(MerakiManager):
             self.bind_hardware_to_network(org_id)
         elif choice == '5':
             self.create_network(org_id)
-            self.bind_harsordware_to_network(org_id)
+            self.bind_hardware_to_network(org_id)
        
             
     def create_network(self, org_id):
