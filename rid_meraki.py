@@ -1,11 +1,11 @@
-import os
+import os 
 import requests
 from rich.console import Console
 from rich import pretty
-from rich.prompt import Prompt
+from rich.prompt import Prompt 
 from rich.table import Table
 import yaml
-import json
+import json 
 
 class MerakiManager:
     def __init__(self, api_key):
@@ -13,7 +13,7 @@ class MerakiManager:
         self.base_url = 'https://api.meraki.com/api/v1'
         self.headers = {
             'X-Cisco-Meraki-API-Key': self.api_key,
-            'Content-Type': 'application/json',
+            'Content-Type': 'applicaton/json',
             'Accept': 'application/json'
         }
 
@@ -28,9 +28,8 @@ class MerakiManager:
     def get_devices(self, org_id):
         response = requests.get(f'{self.base_url}/organizations/{org_id}/inventoryDevices', headers=self.headers)
         return response.json()
-    
-        
 
+    
 class MerakiActions(MerakiManager):
     def __init__(self, api_key):
         super().__init__(api_key)
@@ -73,72 +72,141 @@ class MerakiActions(MerakiManager):
 
         self.console.print(serial_table)
         serial_device = Prompt.ask("Enter de device serial you want to configured ")
-        return serial_device
-        
+        return serial_device    
 
+    # Main menu
     def show_menu(self):
         self.console.print("[bold magenta]Select an option:[/bold magenta]")
-        self.console.print("[green]1.[/green] Provide all devices in the network")
-        self.console.print("[green]2.[/green] Provide all access points")
-        self.console.print("[green]3.[/green] Create a new network")
-        self.console.print("[green]4.[/green] Bind hardware to a network")
-        self.console.print("[green]5.[/green] Default site creation")
-        self.console.print("[green]6.[/green] Vlan creation")
-        self.console.print("[green]7.[/green] Set Firewall rules")
-        self.console.print("[green]8.[/green] DISPONIBLE")
-        self.console.print("[green]9.[/green] Set Threat Protection")        
-        self.console.print("[green]10.[/green] DISPONIBLE")        
-        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+        self.console.print("[green]1.[/green] Create a new site")
+        self.console.print("[green]2.[/green] Configure MX device")
+        self.console.print("[green]3.[/green] Configure MR device")
+        self.console.print("[green]4.[/green] Configure MS device")
+        self.console.print("[green]5.[/green] Provide all devices in organization")    
+        choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5"])
         return choice
 
+    # Option 1 create a new site
+    def newSite_menu(self):
+        self.console.print("[bold magenta]Select an option:[/bold magenta]")
+        self.console.print("[green]1.[/green] Create a network")
+        self.console.print("[green]2.[/green] Vlan Creation")
+        self.console.print("[green]3.[/green] Default site creation")
+        self.console.print("[green]4.[/green] Bind hardware to a network")
+        first_choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4", "5"])
+        return first_choice
+    
+    # Option 2 Configure a MX Device
+    def Mx_menu(self):
+        self.console.print("[bold magenta]Select an option:[/bold magenta]")
+        self.console.print("[green]1.[/green] Provide all Devices in network")
+        self.console.print("[green]2.[/green] Set firewall rules")
+        self.console.print("[green]3.[/green] Set threat protection")
+        self.console.print("[green]4.[/green] Configure appliance in port")
+        second_choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4"])
+        return second_choice
+    
+    # Option 3 Configure a Mr Device (Wireless)
+    def Mr_menu(self):
+        self.console.print("[bold magenta]Select an option:[/bold magenta]")
+        self.console.print("[green]1.[/green] Provide all MR Devices")
+        self.console.print("[green]2.[/green] Configure SSID Wireless")
+        self.console.print("[green]2.[/green] Configure Radio settings")
+        third_choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4"])
+        return third_choice
+
+    # Option 4 Configure a Ms Device (Switch)
+    def Ms_menu(self):
+        self.console.print("[bold magenta]Select an option:[/bold magenta]")
+        self.console.print("[green]1.[/green] Switches devices *No disponible*")
+        self.console.print("[green]2.[/green] No disponible")
+        forth_choice = Prompt.ask("[bold cyan]Enter your choice[/bold cyan]", choices=["1", "2", "3", "4"])
+        return forth_choice
+
+
     def execute_action(self, org_id, choice):
-        if choice == '1' or choice == '2' or choice == '6' or choice == "7" or choice == "8" or choice == "9" or choice == "10":
-            devices = self.get_devices(org_id)
-            if choice == '1':
-                for device in devices:
-                    self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
-            elif choice == '2':
-                for device in devices:
-                    if device['model'].startswith('MR'):
-                        self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
-            elif choice == '6' or choice == "7" or choice == '8' or choice == "9":
-                network_id = self.select_network(org_id)
-                if choice == "6":
-                    if self.check_multiple_vlans(network_id) == False:
-                        self.console.print('\n')
-                        self.console.print("[cyan] updating network to accept multiple vlans [/cyan]")
-                        self.enable_multiple_vlans(network_id)
-                        self.console.print('\n')
-                        self.console.print("[cyan] Starting to configure VLANs [/cyan]")                        
-                        self.configure_vlans(network_id)
-                        self.configure_dhcp(network_id)
-                        self.update_vlan_details(network_id)
-                    else:
-                        self.console.print("[cyan] Starting to configure VLANs [/cyan]")
-                        self.configure_vlans(network_id)   
-                        self.update_vlan_details(network_id)
-                elif choice == "7":
-                    self.configure_fw_rule(network_id)
-                elif choice == "8":
-                    self.configure_appliance_ports(network_id)
-                elif choice == "9":
-                    self.threatProtecction(network_id)
-            elif choice == "10":
-                serial= self.select_serial(org_id)
-                self.radio_settings(serial)
-                #self.configure_wireless(network_id)
-
-
-
-        elif choice == '3':
+        if choice == "1":
+            self.newSite_menu()
+        elif choice == "2":
+            self.Mx_menu()
+        elif choice == "3":
+            self.Mr_menu()
+        elif choice == "4":
+            self.Ms_menu()
+        elif choice == "5":
+            self.provide_devices(org_id)
+          
+    
+    def netSite_action(self, first_choice, org_id):
+        if first_choice == "1":
             self.create_network(org_id)
-        elif choice == '4':
-            self.bind_hardware_to_network(org_id)
-        elif choice == '5':
+        elif first_choice == "2":
+            network_id = self.select_network(org_id)
+            if self.check_multiple_vlans(network_id) == False:
+                self.console.print('\n')
+                self.console.print("[cyan] updating network to accept multiple vlans [/cyan]")
+                self.enable_multiple_vlans(network_id)
+                self.console.print('\n')
+                self.console.print("[cyan] Starting to configure VLANs [/cyan]")                        
+                self.configure_vlans(network_id)
+                #self.configure_dhcp(network_id)
+                self.update_vlan_details(network_id)
+            else:
+                self.console.print("[cyan] Starting to configure VLANs [/cyan]")
+                self.configure_vlans(network_id)   
+                self.update_vlan_details(network_id)
+        elif first_choice == "3":
             self.create_network(org_id)
+            self.bind_hardware_to_network(org_id)    
+        elif first_choice == "4":
             self.bind_hardware_to_network(org_id)
-       
-            
+
+
+
+
+    def mx_actions(self, second_choice, network_id, devices):
+        if second_choice == "1":
+            self.mx_devices(devices)
+        elif second_choice == "2":
+            self.configure_fw_rule(network_id)
+        elif second_choice == "3":
+            self.threatProtecction(network_id)
+        elif second_choice == "4":
+            self.configure_appliance_ports(network_id)
+
+   
+    def mr_actions(self, third_option, devices, network_id, org_id):
+        if third_option == "1":
+            self.mr_devices(devices)
+        elif third_option == "2":
+            self.configure_wireless(network_id)
+        elif third_option == "3":
+            serial = self.select_serial(org_id)
+            self.radio_settings(network_id)
+        elif third_option == "4":
+            self.configure_appliance_ports(network_id)
+ 
+    def ms_actions(self, forth_choice):
+        if forth_choice == "1":
+            self.console.print("configurando switch")
+
+
+    def provide_devices(self, devices):
+        for device in devices:
+            self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
+
+
+    def mx_devices(self, devices):
+        for device in devices:
+            if device['model'].startswith('MX'):
+                self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
+
+    def mr_devices(self, devices):
+        for device in devices:
+            if device['model'].startswith('MR'):
+                self.console.print(f"[cyan]{device['model']}[/cyan] - [magenta]{device['serial']}[/magenta]")
+
+    #Create a new site functions
+
     def create_network(self, org_id):
         self.console.print("\n[bold]Creating a new network...[/bold]")
         name = self.console.input("[bold cyan]Enter network name: [/bold cyan]")
@@ -167,44 +235,37 @@ class MerakiActions(MerakiManager):
         else:
             self.console.print(f"[bold red]Failed to create network. Status code: {response.status_code}[/bold red]")
             self.console.print(f"[bold red]Response: {response.text}[/bold red]")
-    
-    def bind_hardware_to_network(self, ):
-        orgs = self.get_organizations()
-        if not orgs:
-            self.console.print("[bold red]No organizations found.[/bold red]")
-            return
 
-        # For simplicity, using the first organization. You might want to allow the user to select one.
-        org_id = orgs[0]['id']
-        networks = self.get_networks(org_id)
-        devices = self.get_devices(org_id)
 
-        self.console.print("[bold]Available Devices:[/bold]")
-        for device in devices:
-            self.console.print(f"[cyan]Model: {device['model']} - Serial: {device['serial']}[/cyan]")
+    def check_multiple_vlans(self, network_id):
+        self.console.print(f"\n[bold]Validating if {network_id} is set for multiple vlans...[/bold]")
 
-        serial = self.console.input("[bold cyan]Enter the serial number of the device to add: [/bold cyan]")
-        network_id = self.console.input("[bold cyan]Enter the network ID to which the device should be added: [/bold cyan]")
+        vlan_settings_url = f"{self.base_url}/networks/{network_id}/appliance/vlans/settings"
+        vlan_settings_response = requests.get(vlan_settings_url, headers=self.headers)
 
-        self.add_device_to_network(network_id, serial)
+        if vlan_settings_response.status_code == 200:
+            
+            vlan_settings = vlan_settings_response.json()
+            if not vlan_settings.get('vlansEnabled', False):
+                self.console.print ("[bold red]Only a single VLAN is supported on this network")
+                return False
 
-    def get_networks(self, org_id):
-        """Fetches the list of networks for a given organization."""
-        response = requests.get(f"{self.base_url}/organizations/{org_id}/networks", headers=self.headers)
-        return response.json()
+    def enable_multiple_vlans(self, network_id):
 
-    def add_device_to_network(self, network_id, serial):
-        """Adds a device to a specific network."""
-        url = f"{self.base_url}/networks/{network_id}/devices/claim"
-        payload = {"serial": serial}
-        response = requests.post(url, headers=self.headers, json=payload)
+        payload = {
+            'vlansEnabled': True
+        }
+        # put para actualizar a multiples vlans utilizando payload como en la documentacion
+        response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/vlans/settings", headers=self.headers, json=payload)
 
+        # verificamos si se aplico
         if response.status_code == 200:
-            self.console.print("[bold green]Device added successfully to the network![/bold green]")
+            self.console.print("[bold green] Multiple VLANs enabled successfully!!!![/bold green]")
         else:
-            self.console.print(f"[bold red]Failed to add device. Status code: {response.status_code}[/bold red]")
-            self.console.print(f"[bold red]Response: {response.text}[/bold red]")
-    
+            self.console.print(f"[bold red] Failed to enable VLANs. STATUS CODE: {response.status_code}[/bold red]")
+            self.console.print(f"Response: {response.text}")
+
+
     def configure_vlans(self, network_id):
     # Load configurations from YAML file
         with open('inventory.yaml', 'r') as file:
@@ -264,37 +325,79 @@ class MerakiActions(MerakiManager):
                 # Print the table after configuring all VLANs
                 self.console.print(vlan_table)
 
-    def check_multiple_vlans(self, network_id):
-        self.console.print(f"\n[bold]Validating if {network_id} is set for multiple vlans...[/bold]")
+    def update_vlan_details(self, network_id):
+        #########
+        # Load VLAN configurations from the YAML file
+        #########
 
-        vlan_settings_url = f"{self.base_url}/networks/{network_id}/appliance/vlans/settings"
-        vlan_settings_response = requests.get(vlan_settings_url, headers=self.headers)
+        with open('inventory.yaml', 'r') as file:
+            config = yaml.safe_load(file)
 
-        if vlan_settings_response.status_code == 200:
+        #########
+        # Create a table to display VLAN configuration results
+        #########
+        vlan_table = Table(title="VLAN Update Results")
+        vlan_table.add_column("VLAN ID", justify="center", style="cyan")
+        vlan_table.add_column("Name", justify="center", style="magenta")
+        vlan_table.add_column("dhcpHandling", justify="center", style="green")
+        vlan_table.add_column("dnsNameservers", justify="center", style="red")
+        vlan_table.add_column("Status", justify="center", style="blue")
+
+        vlans = config.get('configurations', {}).get('vlans', [])
+        for vlan in vlans:
+            vlan_id = vlan.get('id')
+            self.console.print(f"\n[bold]Updating VLAN {vlan_id} in network {network_id}...[/bold]")
+
+            #########
+            # Prepare the payload excluding keys not accepted by the API
+            #########
+            payload = {key: value for key, value in vlan.items() if key not in ['id', 'cidr', 'mask']}
             
-            vlan_settings = vlan_settings_response.json()
-            if not vlan_settings.get('vlansEnabled', False):
-                self.console.print ("[bold red]Only a single VLAN is supported on this network")
-                return False
-            
-    def enable_multiple_vlans(self, network_id):
+            #########
+            # Update VLAN details via the Meraki API
+            #########
+            response = requests.put(
+                f"{self.base_url}/networks/{network_id}/appliance/vlans/{vlan_id}",
+                headers=self.headers,
+                json=payload
+            )
+    
+            if response.status_code in [200, 201, 204]:
+                vlan_table.add_row(
+                str(vlan_id),
+                vlan.get('name', 'N/A'),
+                vlan.get('dhcpHandling', 'N/A'),
+                vlan.get('dnsNameservers', 'N/A'),
+                "OK",
+                )
+                self.console.print(vlan_table)
+            else:
+                self.console.print(f"[bold red]Failed to update VLAN {vlan_id}. Status code: {response.status_code}[/bold red]")
+                self.console.print(f"Response: {response.text}")
 
-        payload = {
-            'vlansEnabled': True
-        }
-        # put para actualizar a multiples vlans utilizando payload como en la documentacion
-        response = requests.put(f"{self.base_url}/networks/{network_id}/appliance/vlans/settings", headers=self.headers, json=payload)
+    #Revisar funcion
+    def bind_hardware_to_network(self, org_id):
+        orgs = self.get_organizations()
+        if not orgs:
+            self.console.print("[bold red]No organizations found.[/bold red]")
+            return
 
-        # verificamos si se aplico
-        if response.status_code == 200:
-            self.console.print("[bold green] Multiple VLANs enabled successfully!!!![/bold green]")
-        else:
-            self.console.print(f"[bold red] Failed to enable VLANs. STATUS CODE: {response.status_code}[/bold red]")
-            self.console.print(f"Response: {response.text}")
+        # For simplicity, using the first organization. You might want to allow the user to select one.
+        org_id = orgs[0]['id']
+        networks = self.get_networks(org_id)
+        devices = self.get_devices(org_id)
+
+        self.console.print("[bold]Available Devices:[/bold]")
+        for device in devices:
+            self.console.print(f"[cyan]Model: str({device['model']}) - Serial: {device['serial']}[/cyan]")
+
+        serial = self.console.input("[bold cyan]Enter the serial number of the device to add: [/bold cyan]")
+        network_id = self.console.input("[bold cyan]Enter the network ID to which the device should be added: [/bold cyan]")
+
+        self.add_device_to_network(network_id, serial)
 
 
-
-
+    #Configure a Mx Device functions
     def configure_fw_rule(self, network_id):
         #########
         # This function is to update firewall rules with PUT
@@ -350,57 +453,6 @@ class MerakiActions(MerakiManager):
             self.console.print(f"[bold red] Failed configure Firewall Rule. STATUS CODE: {response.status_code}[/bold red]")
             self.console.print(response.text)
 
-
-    def update_vlan_details(self, network_id):
-        #########
-        # Load VLAN configurations from the YAML file
-        #########
-
-        with open('inventory.yaml', 'r') as file:
-            config = yaml.safe_load(file)
-
-        #########
-        # Create a table to display VLAN configuration results
-        #########
-        vlan_table = Table(title="VLAN Update Results")
-        vlan_table.add_column("VLAN ID", justify="center", style="cyan")
-        vlan_table.add_column("Name", justify="center", style="magenta")
-        vlan_table.add_column("dhcpHandling", justify="center", style="green")
-        vlan_table.add_column("dnsNameservers", justify="center", style="red")
-        vlan_table.add_column("Status", justify="center", style="blue")
-
-        vlans = config.get('configurations', {}).get('vlans', [])
-        for vlan in vlans:
-            vlan_id = vlan.get('id')
-            self.console.print(f"\n[bold]Updating VLAN {vlan_id} in network {network_id}...[/bold]")
-
-            #########
-            # Prepare the payload excluding keys not accepted by the API
-            #########
-            payload = {key: value for key, value in vlan.items() if key not in ['id', 'cidr', 'mask']}
-            
-            #########
-            # Update VLAN details via the Meraki API
-            #########
-            response = requests.put(
-                f"{self.base_url}/networks/{network_id}/appliance/vlans/{vlan_id}",
-                headers=self.headers,
-                json=payload
-            )
-    
-            if response.status_code in [200, 201, 204]:
-                vlan_table.add_row(
-                str(vlan_id),
-                vlan.get('name', 'N/A'),
-                vlan.get('dhcpHandling', 'N/A'),
-                vlan.get('dnsNameservers', 'N/A'),
-                "OK",
-                )
-                self.console.print(vlan_table)
-            else:
-                self.console.print(f"[bold red]Failed to update VLAN {vlan_id}. Status code: {response.status_code}[/bold red]")
-                self.console.print(f"Response: {response.text}")
-
     def threatProtecction(self, network_id):
         
         with open('inventory.yaml', 'r') as file:
@@ -426,7 +478,6 @@ class MerakiActions(MerakiManager):
                 self.console.print("Failed to update threat protection.")
                 print(response.text)
 
-
     def configure_appliance_ports(self, network_id):
         with open('inventory.yaml', 'r') as file:
             config = yaml.safe_load(file)
@@ -437,8 +488,8 @@ class MerakiActions(MerakiManager):
         port_table.add_column("Native Vlan", justify="center", style="green")
         port_table.add_column("Status", justify="center", style="blue")
 
-       #import ipdb; ipdb.set_trace()
-
+     
+        #prueba
         ports = config.get('configurations', {}).get('appliance_ports', [])
         for port in ports:
             port_id = port.get('portId')
@@ -466,6 +517,7 @@ class MerakiActions(MerakiManager):
                 self.console.print(f"[bold red]Failed to update Appliance Port {port_id}. Status code: {response.status_code}[/bold red]")
                 self.console.print(f"Response: {response.text}")
 
+    #Configure a MR Device functions
     def configure_wireless(self, network_id):
         with open("inventory.yaml", "r") as file:
             config = yaml.safe_load(file)
@@ -504,7 +556,7 @@ class MerakiActions(MerakiManager):
         else:
             self.console.print(f"Failed configuration. Error {response.status_code}")
             self.console.print(response.text)
-
+        
     def radio_settings(self, serial):
         with open("inventory.yaml", "r") as file:
             config = yaml.safe_load(file)
@@ -531,6 +583,9 @@ class MerakiActions(MerakiManager):
         else:
             self.console.print(f"Failed Radio Settings, error {response.status_code}")
 
+    
+
+
 
 def main():
     api_key = os.getenv('MERAKI_DASHBOARD_API_KEY')
@@ -540,8 +595,34 @@ def main():
 
     meraki_actions = MerakiActions(api_key)
     org_id = meraki_actions.select_organization()  # Ensure org_id is captured from the selection
+    devices = meraki_actions.get_devices(org_id)
     choice = meraki_actions.show_menu()
-    meraki_actions.execute_action(org_id, choice)  # Pass both org_id and choice to execute_action
+    meraki_actions.execute_action(choice, org_id)  # Pass both org_id and choice to execute_action
+    
+
+
+    
+    if choice == "1":
+        first_choice = meraki_actions.newSite_menu()
+        meraki_actions.netSite_action(first_choice, org_id, devices)        
+    elif choice == "2" or choice == "3":
+        network_id = meraki_actions.select_network(org_id)
+        if choice == "2":
+            second_choice = meraki_actions.Mx_menu()
+            meraki_actions.mx_actions(second_choice, network_id, devices)
+        elif choice == "3":
+            third_choice = meraki_actions.Mr_menu()
+            meraki_actions.mr_actions(third_choice, devices, network_id, org_id)
+    elif choice == "4":
+        forth_choice = meraki_actions.Ms_menu()
+        meraki_actions.ms_actions(forth_choice)
+    elif choice == "5":
+        meraki_actions.provide_devices(org_id)
+
+
+
+
+
 
 if __name__ == "__main__":
     main()
